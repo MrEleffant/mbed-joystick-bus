@@ -1,15 +1,23 @@
-#define COMBO_SIZE 4
-#define NBR_TRY 5
-
+#include "CANSmartyCoffre.hpp"
+#include "joystick.hpp"
 #include "mbed.h"
 #include <iostream>
 
-#include "joystick.hpp"
+
+#define COMBO_SIZE 4
+#define NBR_TRY 5
+
+CAN can1(PA_11, PA_12, 20000);
 
 const PinName joystickXPin = A0;
 const PinName joystickYPin = A1;
 
 int main() {
+
+  CANSmartyCoffre noeud(can1, 2);
+
+  noeud.StartPinging();
+
   Joystick joystick(joystickXPin, joystickYPin);
   joystick.calibrate();
 
@@ -35,14 +43,18 @@ int main() {
       std::cout << "Combo finished" << std::endl;
       loose = 0;
       comboStreak = 0;
+
       // trame win
+      noeud.SendDisarmedSignal();
     }
 
     if (loose >= NBR_TRY) {
       std::cout << "You lose" << std::endl;
       loose = 0;
       comboStreak = 0;
+
       // trame loose
+      noeud.SendDetectionSignal();
     }
 
     // trame keep alive
